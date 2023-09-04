@@ -71,7 +71,7 @@ def parse_csv_file(file_path):
                 'product_name': 36,
                 'qty_product_sold': 28,
                 'product_price': 38,
-                'product_prices': 40,
+                'product_prices': 29,
                 'transaction_id': 33,
                 'transaction_datetime': 37,
                 'discount_amount': 39,  # this may be a number or a percentage like 29%
@@ -115,8 +115,8 @@ def add_transaction_to_db(conn, cursor, transaction_id, entries, store):
             entry['transaction_total_discount'] = int(discount)
         return entry
 
-    def parse_ints(entry):
-        entry['qty_product_sold'] = int(entry['qty_product_sold'].replace(',', ''))
+    def parse_nums(entry):
+        entry['qty_product_sold'] = float(entry['qty_product_sold'].replace(',', ''))
         entry['product_price'] = int(entry['product_price'].replace(',', ''))
         entry['product_prices'] = int(entry['product_prices'].replace(',', ''))
         entry['transaction_total'] = int(entry['transaction_total'].replace(',', ''))
@@ -129,7 +129,7 @@ def add_transaction_to_db(conn, cursor, transaction_id, entries, store):
 
     entries = list(map(parse_transaction_datetime, entries))
     entries = list(map(parse_discount, entries))
-    entries = list(map(parse_ints, entries))
+    entries = list(map(parse_nums, entries))
     entries = list(map(cleanup, entries))
 
     query = """
@@ -161,6 +161,23 @@ def add_transaction_to_db(conn, cursor, transaction_id, entries, store):
     print(f"Added  {transaction_id} with {len(entries)} entries to database.")
 
 
+def insert_into_parsed_files(conn, cursor, store, filename):
+    try:
+        query = """
+        INSERT INTO parsed_files (store, filename) 
+        VALUES (?, ?)
+        """
+
+        cursor.execute(query, (store, filename))
+        conn.commit()
+
+    except sqlite3.IntegrityError:
+        print(f"Entry with store {store} and filename {filename} already exists in the database.")
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+        raise e
+
+
 if __name__ == '__main__':
     db_path = 'database.db'
     data_folder = 'data'
@@ -170,8 +187,8 @@ if __name__ == '__main__':
         exit(1)
 
     try:
-        parsed_files = get_parsed_files(cursor)
-        all_csv_files = get_all_csv_files(data_folder)
+        parsed_files = get_parsed_files(cursor)  # set of tuples (store, filename)
+        all_csv_files = get_all_csv_files(data_folder)  # set of tuples (store, filename)
 
         unread_files = all_csv_files - parsed_files
 
@@ -186,7 +203,8 @@ if __name__ == '__main__':
                     continue
                 else:
                     add_transaction_to_db(conn, cursor, transaction_id, entries, store)
-
+            # insert the file into the parsed_files table
+            insert_into_parsed_files(conn, cursor, store, filename)
         conn.close()
     except Exception as e:
         conn.close()
