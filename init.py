@@ -39,7 +39,7 @@ def initialize_database(db_path = "database.db"):
                         store TEXT,
                         product_id TEXT,
                         product_name TEXT,
-                        qty_product_sold INTEGER,
+                        qty_product_sold REAL,
                         product_price INTEGER,
                         product_prices INTEGER,
                         transaction_id TEXT,

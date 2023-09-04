@@ -43,6 +43,9 @@ Use `python3 add_store.py <storename>` to add a store to the database & data fol
 
 Use `python3 load.py` to check the data folder for new CSV files and load them into the database.
 
+It takes about 5 seconds to load about 50,000 transactions into the database. There are
+calls that could be optimized, but this is fast enough for us.
+
 ## Pitfalls
 
 - If a transaction has a percentage discount then the discount amount will not be stored in the DB.
