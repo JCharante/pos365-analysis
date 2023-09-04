@@ -99,9 +99,66 @@ def parse_csv_file(file_path):
         print(f"An error occurred: {e}")
         raise e
 
-def add_transaction_to_db(cursor, transaction_id, entries, store):
+
+def add_transaction_to_db(conn, cursor, transaction_id, entries, store):
     print(f"Adding {transaction_id} to database...")
-    pass
+
+    def parse_transaction_datetime(entry):
+        entry['transaction_date'], entry['transaction_time'] = entry['transaction_datetime'].split(' ')
+        return entry
+
+    def parse_discount(entry):
+        discount = entry['discount_amount']
+        if '%' in discount:
+            entry['transaction_total_discount'] = 0
+        else:
+            entry['transaction_total_discount'] = int(discount)
+        return entry
+
+    def parse_ints(entry):
+        entry['qty_product_sold'] = int(entry['qty_product_sold'].replace(',', ''))
+        entry['product_price'] = int(entry['product_price'].replace(',', ''))
+        entry['product_prices'] = int(entry['product_prices'].replace(',', ''))
+        entry['transaction_total'] = int(entry['transaction_total'].replace(',', ''))
+        return entry
+
+    def cleanup(entry):
+        del entry['transaction_datetime']
+        del entry['discount_amount']
+        return entry
+
+    entries = list(map(parse_transaction_datetime, entries))
+    entries = list(map(parse_discount, entries))
+    entries = list(map(parse_ints, entries))
+    entries = list(map(cleanup, entries))
+
+    query = """
+            INSERT INTO raw_sales (
+                product_id, product_name, qty_product_sold, product_price, 
+                product_prices, transaction_id, transaction_date, 
+                transaction_time, transaction_total_discount, transaction_total, store
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+    data = [
+        (
+            entry['product_id'],
+            entry['product_name'],
+            entry['qty_product_sold'],
+            entry['product_price'],
+            entry['product_prices'],
+            entry['transaction_id'],
+            entry['transaction_date'],
+            entry['transaction_time'],
+            entry['transaction_total_discount'],
+            entry['transaction_total'],
+            store
+        )
+        for entry in entries]
+
+    cursor.executemany(query, data)
+    conn.commit()
+    print(f"Added  {transaction_id} with {len(entries)} entries to database.")
 
 
 if __name__ == '__main__':
@@ -128,9 +185,10 @@ if __name__ == '__main__':
                     print(f"Entry for transaction {transaction_id} already exists. Skipping...")
                     continue
                 else:
-                    add_transaction_to_db(cursor, transaction_id, entries, store)
+                    add_transaction_to_db(conn, cursor, transaction_id, entries, store)
 
         conn.close()
     except Exception as e:
         conn.close()
         print("Exception occurred. Connection to database closed.")
+        raise e
