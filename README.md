@@ -37,5 +37,8 @@ Folder structure:
 
 You'll need to install the python3 dependencies in requirements.txt
 
-Use `python3 init.py` to initialize the SQLite3 database. (suggestion: install SQLite DB Browser to view the database)
+Use `python3 init.py` to initialize the SQLite3 database and data folder. (suggestion: install SQLite DB Browser to view the database)
 
+Use `python3 add_store.py <storename>` to add a store to the database & data folder. This will create a folder in the data folder with the store name.
+
+Use `python3 load.py` to check the data folder for new CSV files and load them into the database.
