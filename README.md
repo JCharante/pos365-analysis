@@ -1,8 +1,6 @@
 # pos365-analysis
 
-Analyze data from pos365
-
-
+Analyze data from pos365.vn
 
 You can have as many stores as you need, and the CSV files should be called `HangHoaBanRaChiTiet.csv` when you download it from pos365. Go to #!/SalesReport and select this setting, then download the data as CSV.
 
