@@ -32,6 +32,30 @@ def initialize_database(db_path = "database.db"):
                     )
                 """)
 
+        # Create a new table named 'raw_sales'
+        # product_prices is basically qty_product_sold * product_price
+        cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS raw_sales (
+                        store TEXT,
+                        product_id TEXT,
+                        product_name TEXT,
+                        qty_product_sold INTEGER,
+                        product_price INTEGER,
+                        product_prices INTEGER,
+                        transaction_id TEXT,
+                        transaction_date TEXT,
+                        transaction_time TEXT,
+                        transaction_total_discount INTEGER,
+                        transaction_total INTEGER
+                    )
+                """)
+
+        # Create an index on the store and transaction_id fields
+        cursor.execute("""
+                   CREATE INDEX IF NOT EXISTS idx_store_transaction_id 
+                   ON raw_sales (store, transaction_id)
+               """)
+
         # Commit the transaction
         conn.commit()
 

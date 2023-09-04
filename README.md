@@ -42,3 +42,7 @@ Use `python3 init.py` to initialize the SQLite3 database and data folder. (sugge
 Use `python3 add_store.py <storename>` to add a store to the database & data folder. This will create a folder in the data folder with the store name.
 
 Use `python3 load.py` to check the data folder for new CSV files and load them into the database.
+
+## Pitfalls
+
+- If a transaction has a percentage discount then it will not be stored in the DB.
