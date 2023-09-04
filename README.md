@@ -45,4 +45,4 @@ Use `python3 load.py` to check the data folder for new CSV files and load them i
 
 ## Pitfalls
 
-- If a transaction has a percentage discount then it will not be stored in the DB.
+- If a transaction has a percentage discount then the discount amount will not be stored in the DB.
