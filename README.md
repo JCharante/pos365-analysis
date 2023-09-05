@@ -55,14 +55,18 @@ Use `python3 sum_product_sales.py` to generate the sum_product_sales table.
 This is useful for mapping product_ids to items and categories, because it calculates
 the total sales for each product_id, so you can map the most important items first.
 
-Use `python3 init_categories.py` to initialize the items and categories JSON file.
+Use `python3 init_categories.py` to initialize the items and categories JSON5 file.
 
-- There are multiple product_id's for the same item, so this JSON file
+- There are multiple product_id's for the same item, so this JSON5 file
 maps the item info to the product_id (which is unique to each store).
 
-- Then in the categories JSON file, you can map items to a category.
+- Then in the categories JSON5 file, you can map items to a category.
 
-There are example values in the generated files.
+- This uses JSON5 rather than JSON so that there can be comments in the file.
+
+- There are example values in the generated files.
+
+- This is a non-destructive command. If the files already exit they won't be overwritten. 
 
 ## Pitfalls
 
