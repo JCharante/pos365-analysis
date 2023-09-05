@@ -112,7 +112,8 @@ def add_transaction_to_db(conn, cursor, transaction_id, entries, store):
         if '%' in discount:
             entry['transaction_total_discount'] = 0
         else:
-            entry['transaction_total_discount'] = int(discount)
+            # discount is usually an int, but sometimes a float representing a whole number
+            entry['transaction_total_discount'] = int(float(discount))
         return entry
 
     def parse_nums(entry):
