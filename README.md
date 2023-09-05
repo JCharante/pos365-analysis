@@ -37,6 +37,9 @@ Folder structure:
 
 You'll need to install the python3 dependencies in requirements.txt
 
+Goal: none of these scripts will delete your data in the /data folder. If you delete the database, 
+you can re-initialize it and add the same stores again, and then run the load script again.
+
 Use `python3 init.py` to initialize the SQLite3 database and data folder. (suggestion: install SQLite DB Browser to view the database)
 
 Use `python3 add_store.py <storename>` to add a store to the database & data folder. This will create a folder in the data folder with the store name.
@@ -46,6 +49,22 @@ Use `python3 load.py` to check the data folder for new CSV files and load them i
 It takes about 5 seconds to load about 50,000 transactions into the database. There are
 calls that could be optimized, but this is fast enough for our operations.
 
+Use `python3 sum_product_sales.py` to generate the sum_product_sales table.
+**This is semi-destructive.** It will drop the table and recreate it on every run.
+
+This is useful for mapping product_ids to items and categories, because it calculates
+the total sales for each product_id, so you can map the most important items first.
+
+Use `python3 init_categories.py` to initialize the items and categories JSON file.
+
+- There are multiple product_id's for the same item, so this JSON file
+maps the item info to the product_id (which is unique to each store).
+
+- Then in the categories JSON file, you can map items to a category.
+
+There are example values in the generated files.
+
 ## Pitfalls
 
 - If a transaction has a percentage discount then the discount amount will not be stored in the DB.
+
