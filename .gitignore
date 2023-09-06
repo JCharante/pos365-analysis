@@ -1,4 +1,5 @@
-data
+data/
 .idea
 database.db
 items.json5
+reports/

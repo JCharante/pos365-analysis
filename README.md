@@ -80,3 +80,12 @@ maps the item info to the product_id (which is unique to each store).
 
 - If a transaction has a percentage discount then the discount amount will not be stored in the DB.
 
+# Case Study
+
+## Opening Hours
+
+Using the reports from `gen_report_time.py`, we were able to make a data-driven decision about
+when to open the restaurant. We found that the restaurant was not profitable until 11AM, so
+we moved the opening time from 10AM to 11AM. This was done by looking at lifetime sales between
+10AM and 11AM and then calculating labor costs. We had a hunch that this might be the case,
+but presenting this graph to the owner made it an instant decision.
