@@ -76,6 +76,12 @@ maps the item info to the product_id (which is unique to each store).
 
 - This is a non-destructive command. If the files already exit they won't be overwritten. 
 
+Use `python3 gen_report_cats.py` to generate reports for categories
+
+- There are several reports generated, they are all in the /reports folder and overwrite a previous report.
+
+- `category-<category_name>-sales-<store_name>.csv` This includes the total sales by item in the category, grouped by date.
+
 ## Pitfalls
 
 - If a transaction has a percentage discount then the discount amount will not be stored in the DB.
