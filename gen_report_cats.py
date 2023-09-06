@@ -1,6 +1,189 @@
 import os
 import sqlite3
 import json5
+from datetime import datetime
+import csv
+
+
+def sort_dates(date_list):
+    return sorted(date_list, key=lambda x: datetime.strptime(x, '%d/%m/%Y'))
+
+
+def date_to_week(date_str):
+    date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+    return date_obj.strftime('%Y-%U')
+
+
+def date_to_biweek(date_str):
+    date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+    week_number = int(date_obj.strftime('%U'))
+    biweek_number = week_number // 2
+    year = date_obj.strftime('%Y')
+    return f"{year}-{biweek_number:02d}"
+
+
+def date_to_month(date_str):
+    date_obj = datetime.strptime(date_str, '%d/%m/%Y')
+    return date_obj.strftime('%Y-%m')
+
+
+# author: ChatGPT4
+def json5_to_csv(json5_data, store_name):
+    sorted_keys = sort_dates(json5_data.keys())
+
+    # Identify unique categories
+    unique_categories = set()
+    for date in json5_data:
+        unique_categories.update(json5_data[date].keys())
+
+    if not os.path.exists('reports'):
+        os.makedirs('reports')
+
+    # Daily
+    for category in unique_categories:
+        # Identify unique items in this category
+        unique_items = set()
+        for date in json5_data:
+            unique_items.update(json5_data[date].get(category, {}).keys())
+        unique_items = list(unique_items)
+
+        # Preparing the CSV headers
+        headers = ["Date"]
+        for item in unique_items:
+            headers.append(f"{item} QTY")
+            headers.append(f"{item} Revenue")
+
+        # Writing to CSV
+        with open(f'reports/category-{category}-sales-{store_name}-daily.csv', 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(headers)
+
+            for date in sorted_keys:
+                row = [date]
+                for item in unique_items:
+                    item_data = json5_data.get(date, {}).get(category, {}).get(item, {})
+                    row.append(item_data.get('qty_sold_daily', 0))
+                    row.append(item_data.get('product_revenue_daily', 0))
+                writer.writerow(row)
+
+    # Weekly
+    for category in unique_categories:
+        # Identify unique items in this category
+        unique_items = set()
+        for date in json5_data:
+            unique_items.update(json5_data[date].get(category, {}).keys())
+        unique_items = list(unique_items)
+
+        # Preparing the CSV headers
+        headers = ["Week"]
+        for item in unique_items:
+            headers.append(f"{item} QTY")
+            headers.append(f"{item} Revenue")
+
+        # Aggregate data by weeks
+        weekly_data = {}
+        for date in sorted_keys:
+            week_number = date_to_week(date)
+            if week_number not in weekly_data:
+                weekly_data[week_number] = {item: {'qty_sold_daily': 0, 'product_revenue_daily': 0} for item in
+                                            unique_items}
+
+            for item in unique_items:
+                item_data = json5_data[date].get(category, {}).get(item, {})
+                weekly_data[week_number][item]['qty_sold_daily'] += item_data.get('qty_sold_daily', 0)
+                weekly_data[week_number][item]['product_revenue_daily'] += item_data.get('product_revenue_daily', 0)
+
+        # Writing to CSV
+        with open(f'reports/category-{category}-sales-{store_name}-weekly.csv', 'w', newline='',
+                  encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(headers)
+
+            for week_number in sorted(weekly_data.keys()):
+                row = [week_number]
+                for item in unique_items:
+                    row.append(weekly_data[week_number][item]['qty_sold_daily'])
+                    row.append(weekly_data[week_number][item]['product_revenue_daily'])
+                writer.writerow(row)
+
+    # bi-weekly
+    for category in unique_categories:
+        # Identify unique items in this category
+        unique_items = set()
+        for date in json5_data:
+            unique_items.update(json5_data[date].get(category, {}).keys())
+        unique_items = list(unique_items)
+
+        # Preparing the CSV headers
+        headers = ["Bi-Week"]
+        for item in unique_items:
+            headers.append(f"{item} QTY")
+            headers.append(f"{item} Revenue")
+
+        # Aggregate data by bi-weeks
+        biweekly_data = {}
+        for date in sorted_keys:
+            biweek_number = date_to_biweek(date)
+            if biweek_number not in biweekly_data:
+                biweekly_data[biweek_number] = {item: {'qty_sold_daily': 0, 'product_revenue_daily': 0} for item in
+                                                unique_items}
+
+            for item in unique_items:
+                item_data = json5_data[date].get(category, {}).get(item, {})
+                biweekly_data[biweek_number][item]['qty_sold_daily'] += item_data.get('qty_sold_daily', 0)
+                biweekly_data[biweek_number][item]['product_revenue_daily'] += item_data.get('product_revenue_daily', 0)
+
+        # Writing to CSV
+        with open(f'reports/category-{category}-sales-{store_name}-biweekly.csv', 'w', newline='',
+                  encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(headers)
+
+            for biweek_number in sorted(biweekly_data.keys()):
+                row = [biweek_number]
+                for item in unique_items:
+                    row.append(biweekly_data[biweek_number][item]['qty_sold_daily'])
+                    row.append(biweekly_data[biweek_number][item]['product_revenue_daily'])
+                writer.writerow(row)
+
+    # Monthly reports
+    for category in unique_categories:
+        # Identify unique items in this category
+        unique_items = set()
+        for date in json5_data:
+            unique_items.update(json5_data[date].get(category, {}).keys())
+        unique_items = list(unique_items)
+
+        # Preparing the CSV headers
+        headers = ["Month"]
+        for item in unique_items:
+            headers.append(f"{item} QTY")
+            headers.append(f"{item} Revenue")
+
+        # Aggregate data by months
+        monthly_data = {}
+        for date in sorted_keys:
+            month = date_to_month(date)
+            if month not in monthly_data:
+                monthly_data[month] = {item: {'qty_sold_daily': 0, 'product_revenue_daily': 0} for item in unique_items}
+
+            for item in unique_items:
+                item_data = json5_data[date].get(category, {}).get(item, {})
+                monthly_data[month][item]['qty_sold_daily'] += item_data.get('qty_sold_daily', 0)
+                monthly_data[month][item]['product_revenue_daily'] += item_data.get('product_revenue_daily', 0)
+
+        # Writing to CSV
+        with open(f'reports/category-{category}-sales-{store_name}-monthly.csv', 'w', newline='',
+                  encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(headers)
+
+            for month in sorted(monthly_data.keys()):
+                row = [month]
+                for item in unique_items:
+                    row.append(monthly_data[month][item]['qty_sold_daily'])
+                    row.append(monthly_data[month][item]['product_revenue_daily'])
+                writer.writerow(row)
 
 
 def generate_report(cursor, stores, items, categories):
@@ -75,8 +258,9 @@ def generate_report(cursor, stores, items, categories):
                     data[transaction_date][category_name][item_name]['qty_sold_daily'] += qty_sold_daily
                     data[transaction_date][category_name][item_name]['product_revenue_daily'] += qty_sold_daily * direct_avg_price
         # print(data)
-        with open(f'reports/{store}.json5', 'w') as file:
-            json5.dump(data, file, indent=4)
+        json5_to_csv(data, store)
+        #with open(f'reports/{store}.json5', 'w') as file:
+        #    json5.dump(data, file, indent=4)
     pass
 
 
