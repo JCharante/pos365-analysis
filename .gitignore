@@ -2,4 +2,5 @@ data/
 .idea
 database.db
 items.json5
+categories.json5
 reports/

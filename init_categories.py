@@ -6,7 +6,7 @@ if not os.path.exists('items.json5'):
         'direct': {
             'hanoi': [   // the name of the first store
                 'HH-0189',  // entered when sold in-store or takeout.
-                'HH-0168'   // entered when sold on GrabFood
+                'HH-0216'   // entered when sold on GrabFood
             ],
             'saigon': [  // the name of the second store
                 'HH-0099',  // entered when sold in-store or takeout.
@@ -25,4 +25,14 @@ if not os.path.exists('items.json5'):
     print('Generated items.json5')
 else:
     print('items.json5 already exists.')
+
+
+if not os.path.exists('categories.json5'):
+    open('categories.json5', 'x').write("""{
+    'Burgers': ['Classic Burger', "Chick'un Burger", "Pulled Shroom Burger", "Possible Burger", "Black Magic Burger"]
+}""")
+    print('Generated categories.json5')
+else:
+    print('categories.json5 already exists.')
+
 
