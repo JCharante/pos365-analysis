@@ -55,6 +55,14 @@ Use `python3 sum_product_sales.py` to generate the sum_product_sales table.
 This is useful for mapping product_ids to items and categories, because it calculates
 the total sales for each product_id, so you can map the most important items first.
 
+Use `python3 gen_report_time.py <start_hour> <end_hour> <minute_interval>` to generate reports in the /reports folder.
+
+- Example invocation: `python3 gen_report_time.py 10 21 10`
+
+- This will generate a report for each store.
+
+- Reports are generated in the /reports folder with the name convention `sales-by-time-<storename>-interval-<minute_interval>.csv` and will overwrite existing files.
+
 Use `python3 init_categories.py` to initialize the items and categories JSON5 file.
 
 - There are multiple product_id's for the same item, so this JSON5 file
