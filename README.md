@@ -80,7 +80,33 @@ Use `python3 gen_report_cats.py` to generate reports for categories
 
 - There are several reports generated, they are all in the /reports folder and overwrite a previous report.
 
-- `category-<category_name>-sales-<store_name>.csv` This includes the total sales by item in the category, grouped by date.
+- `category-<category_name>-sales-<store_name>-daily.csv` 
+This includes the total sales by item in the category, grouped by date.
+
+- `category-<category_name>-sales-<store_name>-weekly.csv` 
+This includes the total sales by item in the category, grouped by week.
+
+- `category-<category_name>-sales-<store_name>-biweekly.csv` 
+This includes the total sales by item in the category, grouped bi-weekly.
+
+- `category-<category_name>-sales-<store_name>-monthly.csv` 
+This includes the total sales by item in the category, grouped by month.
+
+- **Advice** Use the script `python3 remaining_items.py` to generate a list of product_ids that are already mapped, 
+then use NOT IN to filter out those items when looking up the sum_product_sales table.
+
+Use `python3 remaining_items.py` to generate a list of product_ids that are
+mapped in the items.json5 file. It will print them out by store,
+then you can run a query like
+
+```sql
+SELECT * 
+FROM sum_product_sales 
+WHERE product_id NOT IN ("HH-0001") 
+AND store_name = "store1"
+ORDER BY sales DESC;
+```
+
 
 ## Pitfalls
 
