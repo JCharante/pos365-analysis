@@ -28,7 +28,7 @@ def date_to_month(date_str):
 
 
 # author: ChatGPT4
-def json5_to_csv(json5_data, store_name):
+def json5_to_csv(json5_data, store_name, include_qty):
     sorted_keys = sort_dates(json5_data.keys())
 
     # Identify unique categories
@@ -50,7 +50,8 @@ def json5_to_csv(json5_data, store_name):
         # Preparing the CSV headers
         headers = ["Date"]
         for item in unique_items:
-            headers.append(f"{item} QTY")
+            if include_qty:
+                headers.append(f"{item} QTY")
             headers.append(f"{item} Revenue")
 
         # Writing to CSV
@@ -62,7 +63,8 @@ def json5_to_csv(json5_data, store_name):
                 row = [date]
                 for item in unique_items:
                     item_data = json5_data.get(date, {}).get(category, {}).get(item, {})
-                    row.append(item_data.get('qty_sold_daily', 0))
+                    if include_qty:
+                        row.append(item_data.get('qty_sold_daily', 0))
                     row.append(item_data.get('product_revenue_daily', 0))
                 writer.writerow(row)
 
@@ -77,7 +79,8 @@ def json5_to_csv(json5_data, store_name):
         # Preparing the CSV headers
         headers = ["Week"]
         for item in unique_items:
-            headers.append(f"{item} QTY")
+            if include_qty:
+                headers.append(f"{item} QTY")
             headers.append(f"{item} Revenue")
 
         # Aggregate data by weeks
@@ -102,7 +105,8 @@ def json5_to_csv(json5_data, store_name):
             for week_number in sorted(weekly_data.keys()):
                 row = [week_number]
                 for item in unique_items:
-                    row.append(weekly_data[week_number][item]['qty_sold_daily'])
+                    if include_qty:
+                        row.append(weekly_data[week_number][item]['qty_sold_daily'])
                     row.append(weekly_data[week_number][item]['product_revenue_daily'])
                 writer.writerow(row)
 
@@ -117,7 +121,8 @@ def json5_to_csv(json5_data, store_name):
         # Preparing the CSV headers
         headers = ["Bi-Week"]
         for item in unique_items:
-            headers.append(f"{item} QTY")
+            if include_qty:
+                headers.append(f"{item} QTY")
             headers.append(f"{item} Revenue")
 
         # Aggregate data by bi-weeks
@@ -142,7 +147,8 @@ def json5_to_csv(json5_data, store_name):
             for biweek_number in sorted(biweekly_data.keys()):
                 row = [biweek_number]
                 for item in unique_items:
-                    row.append(biweekly_data[biweek_number][item]['qty_sold_daily'])
+                    if include_qty:
+                        row.append(biweekly_data[biweek_number][item]['qty_sold_daily'])
                     row.append(biweekly_data[biweek_number][item]['product_revenue_daily'])
                 writer.writerow(row)
 
@@ -157,7 +163,8 @@ def json5_to_csv(json5_data, store_name):
         # Preparing the CSV headers
         headers = ["Month"]
         for item in unique_items:
-            headers.append(f"{item} QTY")
+            if include_qty:
+                headers.append(f"{item} QTY")
             headers.append(f"{item} Revenue")
 
         # Aggregate data by months
@@ -181,7 +188,8 @@ def json5_to_csv(json5_data, store_name):
             for month in sorted(monthly_data.keys()):
                 row = [month]
                 for item in unique_items:
-                    row.append(monthly_data[month][item]['qty_sold_daily'])
+                    if include_qty:
+                        row.append(monthly_data[month][item]['qty_sold_daily'])
                     row.append(monthly_data[month][item]['product_revenue_daily'])
                 writer.writerow(row)
 
@@ -258,7 +266,7 @@ def generate_report(cursor, stores, items, categories):
                     data[transaction_date][category_name][item_name]['qty_sold_daily'] += qty_sold_daily
                     data[transaction_date][category_name][item_name]['product_revenue_daily'] += qty_sold_daily * direct_avg_price
         # print(data)
-        json5_to_csv(data, store)
+        json5_to_csv(data, store, False)
         #with open(f'reports/{store}.json5', 'w') as file:
         #    json5.dump(data, file, indent=4)
     pass
