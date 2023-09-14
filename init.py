@@ -56,6 +56,18 @@ def initialize_database(db_path = "database.db"):
                    ON raw_sales (store, transaction_id)
                """)
 
+        cursor.execute("""
+                CREATE TABLE IF NOT EXISTS item_cat_sales (
+                    store TEXT,
+                    category TEXT,
+                    time_bucket TEXT,
+                    type TEXT,
+                    qty_product_sold REAL,
+                    revenue REAL,
+                    item TEXT
+                )
+        """)
+
         # Commit the transaction
         conn.commit()
 

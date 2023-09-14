@@ -194,6 +194,90 @@ def json5_to_csv(json5_data, store_name, include_qty):
                 writer.writerow(row)
 
 
+def data_to_db(json5_data, store, cursor: sqlite3.Cursor, conn):
+    sorted_keys = sort_dates(json5_data.keys())
+
+    # Identify unique categories
+    unique_categories = set()
+    for date in json5_data:
+        unique_categories.update(json5_data[date].keys())
+    print(unique_categories)
+
+    # delete previous answers
+    cursor.execute("""
+                DELETE FROM item_cat_sales WHERE store = ?
+            """, [store])
+
+    for category in unique_categories:
+        # Identify unique items in this category
+        unique_items = set()
+        for date in json5_data:
+            unique_items.update(json5_data[date].get(category, {}).keys())
+        unique_items = list(unique_items)
+
+        daily_info = []
+        weekly_data = {}
+        biweekly_data = {}
+        monthly_data = {}
+
+        for date in sorted_keys:
+            week_number = date_to_week(date)
+            if week_number not in weekly_data:
+                weekly_data[week_number] = {item: {'qty_sold_daily': 0, 'product_revenue_daily': 0} for item in
+                                            unique_items}
+
+            biweek_number = date_to_biweek(date)
+            if biweek_number not in biweekly_data:
+                biweekly_data[biweek_number] = {item: {'qty_sold_daily': 0, 'product_revenue_daily': 0} for item in
+                                                unique_items}
+
+            month = date_to_month(date)
+            if month not in monthly_data:
+                monthly_data[month] = {item: {'qty_sold_daily': 0, 'product_revenue_daily': 0} for item in
+                                       unique_items}
+
+            for item in unique_items:
+                item_data = json5_data.get(date, {}).get(category, {}).get(item, {})
+                daily_info.append((store, category, date, "daily", item_data.get('qty_sold_daily', 0), item_data.get('product_revenue_daily', 0), item))
+                weekly_data[week_number][item]['qty_sold_daily'] += item_data.get('qty_sold_daily', 0)
+                weekly_data[week_number][item]['product_revenue_daily'] += item_data.get('product_revenue_daily', 0)
+                biweekly_data[biweek_number][item]['qty_sold_daily'] += item_data.get('qty_sold_daily', 0)
+                biweekly_data[biweek_number][item]['product_revenue_daily'] += item_data.get('product_revenue_daily', 0)
+                monthly_data[month][item]['qty_sold_daily'] += item_data.get('qty_sold_daily', 0)
+                monthly_data[month][item]['product_revenue_daily'] += item_data.get('product_revenue_daily', 0)
+
+
+        statement = """
+                    INSERT INTO item_cat_sales(
+                        store, category, time_bucket, type,
+                        qty_product_sold, revenue, item
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """
+        conn.commit()
+        cursor.executemany(statement, daily_info)
+        # weekly_tuples = []
+        # for week_number, items in weekly_data.items():
+        #     for item_name, item in items.items():
+        #         weekly_tuples.append((
+        #             store, category, week_number, "weekly", item.get('qty_sold_daily', 0.0),
+        #             item.get('product_revenue_daily', 0.0), item_name
+        #         ))
+        for time_bucket_type, time_bucket_data in [
+            ("weekly", weekly_data),
+            ("biweekly", biweekly_data),
+            ("monthly", monthly_data),
+        ]:
+            tuples = []
+            for time_bucket, items in time_bucket_data.items():
+                for item_name, item in items.items():
+                    tuples.append((
+                        store, category, time_bucket, time_bucket_type, item.get('qty_sold_daily', 0.0),
+                        item.get('product_revenue_daily', 0.0), item_name
+                    ))
+            cursor.executemany(statement, tuples)
+        conn.commit()
+
+    
 def generate_report(cursor, stores, items, categories):
     # get all sales for store
     item_names = list(items.keys())
@@ -266,10 +350,17 @@ def generate_report(cursor, stores, items, categories):
                     data[transaction_date][category_name][item_name]['qty_sold_daily'] += qty_sold_daily
                     data[transaction_date][category_name][item_name]['product_revenue_daily'] += qty_sold_daily * direct_avg_price
         # print(data)
-        json5_to_csv(data, store, False)
-        #with open(f'reports/{store}.json5', 'w') as file:
-        #    json5.dump(data, file, indent=4)
+        #json5_to_csv(data, store, False)
+        data_to_db(data, store, cursor, conn)
+        # with open(f'reports/{store}.json5', 'w') as file:
+        #     json5.dump(data, file, indent=4)
     pass
+
+
+def delete_item_cat_sales(cursor: sqlite3.Cursor):
+    cursor.execute("""
+        DELETE FROM item_cat_sales;
+    """)
 
 
 if __name__ == "__main__":
@@ -287,6 +378,9 @@ if __name__ == "__main__":
     # read json5 config fies
     items = json5.load(open('items.json5'))
     categories = json5.load(open('categories.json5'))
+
+    # delete item_cat_sales table
+    delete_item_cat_sales(cursor)
 
     try:
         # get all stores
