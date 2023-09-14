@@ -78,7 +78,7 @@ maps the item info to the product_id (which is unique to each store).
 
 Use `python3 gen_report_cats.py` to generate reports for categories
 
-TODO: these reports are being entered into the `item_cat_sales` table.
+These reports are being entered into the `item_cat_sales` table.
 
 - There are several reports generated, they are all in the /reports folder and overwrite a previous report.
 
