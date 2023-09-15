@@ -105,7 +105,7 @@ then you can run a query like
 SELECT * 
 FROM sum_product_sales 
 WHERE product_id NOT IN ("HH-0001") 
-AND store_name = "store1"
+AND store = "store1"
 ORDER BY sales DESC;
 ```
 

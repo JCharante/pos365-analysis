@@ -61,12 +61,14 @@ def initialize_database(db_path = "database.db"):
                     store TEXT,
                     category TEXT,
                     time_bucket TEXT,
+                    time_bucket_extra TEXT,
                     type TEXT,
                     qty_product_sold REAL,
                     revenue REAL,
                     item TEXT
                 )
         """)
+        # time_bucket_extra is meant for stuff like day of week if time_bucket is daily
 
         # Commit the transaction
         conn.commit()

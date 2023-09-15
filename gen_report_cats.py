@@ -194,6 +194,17 @@ def json5_to_csv(json5_data, store_name, include_qty):
                 writer.writerow(row)
 
 
+def DDMMYYYY_to_YYYYMMDD(date_string):
+    chunks = date_string.split('/')
+    return f"{chunks[2]}-{chunks[1]}-{chunks[0]}"
+
+
+# input in format of YYYY-MM-DD
+def get_day_of_week(date_str):
+    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+    return date_obj.strftime('%A')
+
+
 def data_to_db(json5_data, store, cursor: sqlite3.Cursor, conn):
     sorted_keys = sort_dates(json5_data.keys())
 
@@ -238,7 +249,17 @@ def data_to_db(json5_data, store, cursor: sqlite3.Cursor, conn):
 
             for item in unique_items:
                 item_data = json5_data.get(date, {}).get(category, {}).get(item, {})
-                daily_info.append((store, category, date, "daily", item_data.get('qty_sold_daily', 0), item_data.get('product_revenue_daily', 0), item))
+                formatted_date = DDMMYYYY_to_YYYYMMDD(date)
+                daily_info.append(
+                    (store,
+                     category,
+                     formatted_date,
+                     get_day_of_week(formatted_date),
+                     "daily",
+                     item_data.get('qty_sold_daily', 0),
+                     item_data.get('product_revenue_daily', 0),
+                     item)
+                )
                 weekly_data[week_number][item]['qty_sold_daily'] += item_data.get('qty_sold_daily', 0)
                 weekly_data[week_number][item]['product_revenue_daily'] += item_data.get('product_revenue_daily', 0)
                 biweekly_data[biweek_number][item]['qty_sold_daily'] += item_data.get('qty_sold_daily', 0)
@@ -249,9 +270,9 @@ def data_to_db(json5_data, store, cursor: sqlite3.Cursor, conn):
 
         statement = """
                     INSERT INTO item_cat_sales(
-                        store, category, time_bucket, type,
+                        store, category, time_bucket, time_bucket_extra, type,
                         qty_product_sold, revenue, item
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """
         conn.commit()
         cursor.executemany(statement, daily_info)
@@ -271,7 +292,7 @@ def data_to_db(json5_data, store, cursor: sqlite3.Cursor, conn):
             for time_bucket, items in time_bucket_data.items():
                 for item_name, item in items.items():
                     tuples.append((
-                        store, category, time_bucket, time_bucket_type, item.get('qty_sold_daily', 0.0),
+                        store, category, time_bucket, None, time_bucket_type, item.get('qty_sold_daily', 0.0),
                         item.get('product_revenue_daily', 0.0), item_name
                     ))
             cursor.executemany(statement, tuples)
@@ -350,7 +371,7 @@ def generate_report(cursor, stores, items, categories):
                     data[transaction_date][category_name][item_name]['qty_sold_daily'] += qty_sold_daily
                     data[transaction_date][category_name][item_name]['product_revenue_daily'] += qty_sold_daily * direct_avg_price
         # print(data)
-        #json5_to_csv(data, store, False)
+        json5_to_csv(data, store, False)
         data_to_db(data, store, cursor, conn)
         # with open(f'reports/{store}.json5', 'w') as file:
         #     json5.dump(data, file, indent=4)
