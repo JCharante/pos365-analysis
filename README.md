@@ -57,6 +57,8 @@ the total sales for each product_id, so you can map the most important items fir
 
 Use `python3 gen_report_time.py <start_hour> <end_hour> <minute_interval>` to generate reports in the /reports folder.
 
+This is used to create graphs that show sales bucketed into time intervals (to see when your busy hours are)
+
 - Example invocation: `python3 gen_report_time.py 10 21 10`
 
 - This will generate a report for each store.
@@ -109,6 +111,19 @@ AND store = "store1"
 ORDER BY sales DESC;
 ```
 
+Use `python3 report-sales.py` to generate a list of sales related reports.
+
+- `sales-all-stores-daily.csv`
+with columns Date, Daily Sales (StoreName), 30d moving avg (StoreName)
+and it will include columns for each store.
+
+Note because some stores may not be open all day or have different schedules, the 30d moving avg may represent
+the avg revenue over the last 30 days including the current date which is different than the
+average revenue per day the store is open.
+An easy example is a store open twice per month that sells $15,000 each day it's open, the 30d moving avg
+will be $1,000 but the moving avg **excluding null entries** would be $15,000.
+
+This csv file should be easy to import into Google Sheets for the purpose of making graphs.
 
 ## Pitfalls
 
